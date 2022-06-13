@@ -1,6 +1,7 @@
 import UserModel from "../models/User.js";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
+import transporter from "../config/emailConfig.js";
 
 class UserController {
 
@@ -118,6 +119,86 @@ class UserController {
             resp.status(200).send({ "status": "0", "response_code": "400", "message": "All fields are required" });
 
         }
+    }
+
+
+    //logged user detais
+    static loggedUser=async (req,resp)=>{
+        resp.status(200).send({"user":req.user,"response_code":"200","status":"1"})
+    }
+    // send user reset mail
+    static sendUserPasswordResetEmail = async(req,resp)=>{
+        const {email}=req.body
+        if(email)
+        {
+            const user= await UserModel.findOne({email:email});
+            const secret=user._id+process.env.JWT_SECRET_KEY;
+            if(user)
+            {
+                const token=jwt.sign({
+                    user_id:user._id
+                },secret,{expiresIn:'15m'});
+                const link=`http:127.0.0.1:3000/api/user/reset/${user._id}/${token}`;
+                console.log(link);
+
+                let info = await transporter.sendMail({
+                    from:process.env.EMAIL_FROM,
+                    to:user.email,
+                    subject:'Rakesh shop|  Password Reset Link',
+                    html:`<a href=${link}>Click here</a>`
+                })
+                resp.status(200).send({"nessage":"email send Successfully","response_code":"204","status":"1"})
+
+            }
+            else
+            {
+                resp.status(200).send({"nessage":"email does not exists","response_code":"204","status":"1"})
+
+            }
+
+        }
+        else
+        {
+            resp.status(400).send({"message":"Email is required","response_code":400,"status":1});
+        }
+    }
+    static userPasswordReset=async(req,resp)=>{
+     const{password,password_confirmation}=req.body;
+     const{id,token}=req.params;
+     const user=await UserModel.findById(id);
+
+     const new_secret=user._id+process.env.JWT_SECRET_KEY;
+     try {
+        jwt.verify(token,new_secret);
+        if(password && password_confirmation)
+        {
+            if(password === password_confirmation)
+            {
+                const salt=await bcrypt.genSalt(10);
+                const newHashPassword=await bcrypt.hash(password,salt);
+                // console.log('user',req.user);
+                await UserModel.findByIdAndUpdate(user._id,{$set:{'password':newHashPassword}});
+                resp.status(200).send({"status": "1", "response_code": "200", "message": "Password reset Successfully" });
+
+
+            }
+            else
+            {
+                resp.status(200).send({"status": "0", "response_code": "400", "message": "Password and confirm password are not same" });
+
+            }
+
+        }
+        else
+        {
+            resp.status(200).send({ "status": "0", "response_code": "400", "message": "All fields are required" });
+
+        }
+
+     } catch (error) {
+        console.log(error);
+        resp.status(400).send({"message":"Invalid token","status":"0","response_code":"400"});
+     }
     }
 }
 
