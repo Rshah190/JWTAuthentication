@@ -8,8 +8,8 @@ const ProductSchema=new mongoose.Schema({
     color_code:{type:String,required:true,trim:true},
     product_code:{type:String,required:true,trim:true},
     created_at: { type: Date, default: Date.now },
-    updated_at: { type: Date, default: Date.now }
-});
+    updated_at: { type: Date, default: Date.now },
+  });
 
  // Define Model
  const ProductModel=mongoose.model("products",ProductSchema);

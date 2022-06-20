@@ -8,6 +8,9 @@ class UserController {
     // register
     static userRegistration = async (req, resp) => {
         const { name, email, password, password_confirmation, tc } = req.body;
+        const image=req.file;
+        
+
         const email_check = await UserModel.findOne({ email: email });
         if (email_check) {
             resp.send({ "status": "0", "response_code": "400", "message": "Email already exists" });
@@ -22,7 +25,8 @@ class UserController {
                             name: name,
                             email: email,
                             password: hashPassword,
-                            tc: tc
+                            tc: tc,
+                            image:image.filename
                         });
                         const user_response = await document.save();
                         const token= jwt.sign({user_id:user_response._id},process.env.JWT_SECRET_KEY,{expiresIn:'5d'});

@@ -6,7 +6,7 @@ import bodyParser from 'body-parser';
 import connectDb from './config/connectdb.js';
 import userRoutes  from './routes/userRoutes.js';
 import productRoutes  from './routes/productRoutes.js';
-
+import multer from 'multer';
 const app =express();
 const port = process.env.PORT;
 const DATABASE_URL=process.env.DATABASE_URL;
@@ -14,12 +14,17 @@ const DATABASE_URL=process.env.DATABASE_URL;
 //cors policy
 app.use(cors());
 
-
 // database url
 connectDb(DATABASE_URL);
 
-// JSON
+//for parsing application/json
 app.use(express.json());
+
+// for parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true })); 
+
+// set the static folder
+app.use(express.static('public'));
 
 // load Routes
 app.use('/api/user',userRoutes);
