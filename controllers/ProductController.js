@@ -1,7 +1,6 @@
 import ProductModel from "../models/Product.js";
 import ProductImageModel from "../models/ProductImage.js";
 import UserModel from "../models/User.js";
-import jwt from "jsonwebtoken";
 import path from "path";
 class ProductController {
 
@@ -53,34 +52,33 @@ class ProductController {
    }
    static allProducts=async (req,resp)=>{
     const products=await ProductModel.find({user_id:req.user._id});
-    console.log(products.length);
     let response=[];
-    let ObjectArray=[];
     for(var i=0;i<products.length;i++)
     {
-      ObjectArray['id']=products[i]._id;
-      ObjectArray['name']=products[i].name;
-      ObjectArray['description']=products[i].description;
-      ObjectArray['product_code']=products[i].product_code;
-      ObjectArray['color_code']=products[i].color_code;
+      let objectResponse={
+        id:products[i]._id,
+        name:products[i].name,
+        description:products[i].description,
+        product_code:products[i].product_code,
+        color_code:products[i].color_code,
 
-
-      let productImageArray=[];
-      let productObjectArray=[];
+      }
+      let productImageResponse=[];
+     
       const product_images=await ProductImageModel.find({product_id:products[i]._id});
-      console.log(product_images);
-
       for(var j=0;j<product_images.length;j++)
       {
-        productObjectArray['image_id']=product_images[j]._id;
-        productObjectArray['image_url']=product_images[j].image;
-        productImageArray.push(productObjectArray);
+        let productImageObject={
+          image_id:product_images[j]._id,
+          image_url: 'http://localhost:8000/'+path.join('public/products/')+product_images[j].image
+        };
+        productImageResponse.push(productImageObject);
       }
-      ObjectArray['product_images']=productImageArray;
-      response.push(ObjectArray);
+      objectResponse.product_images=productImageResponse;
+      response.push(objectResponse);
     }
     
-    resp.status(200).send({"result":response,"message":"User fetch Successfully","response_code":200,"status":"1"})
+    resp.status(200).send({"result":response,"message":"Products fetch Successfully","response_code":200,"status":"1"})
 
    }
 }
