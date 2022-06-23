@@ -26,8 +26,10 @@ const storage= multer.diskStorage({
 const upload = multer({ storage: storage }).array('image',4);
 // Route level middleware to protect routes
 router.use('/addProduct',checkUserAuth);
+router.use('/allProducts',checkUserAuth);
+
 
 //Public Routes
 router.post('/addProduct',upload,ProductController.addProduct);
-
+router.get('/allProducts',ProductController.allProducts);
 export default router;
