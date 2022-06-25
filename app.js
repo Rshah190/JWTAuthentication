@@ -2,11 +2,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
 import connectDb from './config/connectdb.js';
 import userRoutes  from './routes/userRoutes.js';
 import productRoutes  from './routes/productRoutes.js';
-import multer from 'multer';
+import expressLayouts from 'express-ejs-layouts';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const app =express();
 const port = process.env.PORT;
 const DATABASE_URL=process.env.DATABASE_URL;
@@ -24,7 +29,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 
 // set the static folder
-app.use(express.static('public'));
+app.use(expressLayouts);
+app.set('view engine', 'ejs');
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/docs', express.static(path.join(__dirname, 'docs')));
 
 // load Routes
 app.use('/api/user',userRoutes);

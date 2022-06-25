@@ -13,7 +13,7 @@ router.use('/send-password-reset-email',checkUserAuth);
 // console.log(path.join('public'));
 const storage= multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, path.join('public/users'))
+        cb(null, path.join('public/images/users'))
       },
       filename: function (req, file, cb) {
         const uniqueSuffix =Math.round(Math.random() * 1E9)

@@ -1,7 +1,15 @@
 import ProductModel from "../models/Product.js";
 import ProductImageModel from "../models/ProductImage.js";
-import UserModel from "../models/User.js";
 import path from "path";
+import pdf from "pdf-creator-node";
+import fs from "fs";
+import options from '../helpers/options.js';
+import data from '../helpers/data.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 class ProductController {
 
    static addProduct=async (req,resp)=>{
@@ -70,7 +78,7 @@ class ProductController {
       {
         let productImageObject={
           image_id:product_images[j]._id,
-          image_url: 'http://localhost:8000/'+path.join('public/products/')+product_images[j].image
+          image_url: 'http://localhost:8000/'+path.join('public/images/products/')+product_images[j].image
         };
         productImageResponse.push(productImageObject);
       }
@@ -80,6 +88,57 @@ class ProductController {
     
     resp.status(200).send({"result":response,"message":"Products fetch Successfully","response_code":200,"status":"1"})
 
+   }
+   static allProductsPdf=async (req,res)=>{
+    const html = fs.readFileSync(path.join(__dirname, '../views/template.html'), 'utf-8');
+        const filename = Math.random() + '_doc' + '.pdf';
+        let array = [];
+
+        data.forEach(d => {
+            const prod = {
+                name: d.name,
+                description: d.description,
+                unit: d.unit,
+                quantity: d.quantity,
+                price: d.price,
+                total: d.quantity * d.price,
+                imgurl: d.imgurl
+            }
+            array.push(prod);
+        });
+
+        let subtotal = 0;
+        array.forEach(i => {
+            subtotal += i.total
+        });
+        const tax = (subtotal * 20) / 100;
+        const grandtotal = subtotal - tax;
+        const obj = {
+            prodlist: array,
+            subtotal: subtotal,
+            tax: tax,
+            gtotal: grandtotal
+        }
+        const document = {
+            html: html,
+            data: {
+                products: obj
+            },
+            path: './docs/' + filename
+        }
+        pdf.create(document, options)
+            .then(res => {
+                console.log(res);
+            }).catch(error => {
+                console.log(error);
+            });
+            const filepath = 'http://localhost:8000/docs/' + filename;
+
+            res.render('download', {
+                path: filepath
+            });
+   
+  
    }
 }
 
